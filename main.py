@@ -28,18 +28,13 @@ port = 8000
 
 @app.post("/")
 def upload(c: UploadFile = File(...)):
-    while True:
-        file_id = "".join([choice(id_str) for _ in range(4)])
-        if file_id in file_list:
-            continue
-        break
+    while (file_id := "".join([choice(id_str) for _ in range(4)])) in file_list:
+        continue
     file_list.append(file_id)
     try:
         with open(root / file_id, "wb") as f:
-            contents = c.file.read(1024 * 1024)
-            while contents:
+            while contents := c.file.read(1024 * 1024):
                 f.write(contents)
-                contents = c.file.read(1024 * 1024)
     except Exception as e:
         return {"code": -1, "message": "上传出错了！", "error": repr(e)}
     finally:
@@ -47,7 +42,7 @@ def upload(c: UploadFile = File(...)):
     return {
         "code": 0,
         "message": f"Successfully uploaded: {file_id}",
-        "url": f"http://0.0.0.0:{port}/{file_id}",
+        "url": f"https://ayaclip.onrender.com/{file_id}",
     }
 
 
