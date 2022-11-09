@@ -26,7 +26,12 @@ app = FastAPI()
 port = 8000
 
 
-@app.post("/")
+@app.get("/")
+def r_():
+    return {"Hello": "World"}
+
+
+@app.post("/c/")
 def upload(c: UploadFile = File(...)):
     while True:
         file_id = "".join([choice(id_str) for _ in range(4)])
@@ -51,7 +56,7 @@ def upload(c: UploadFile = File(...)):
     }
 
 
-@app.get("/{file_id}")
+@app.get("/f/{file_id}")
 async def download(file_id: str = Path(..., min_length=4, max_length=4)):
     if file_id in file_list:
         return FileResponse(root / file_id)
