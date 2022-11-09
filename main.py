@@ -28,8 +28,11 @@ port = 8000
 
 @app.post("/")
 def upload(c: UploadFile = File(...)):
-    while (file_id := "".join([choice(id_str) for _ in range(4)])) in file_list:
-        continue
+    while True:
+        file_id = "".join([choice(id_str) for _ in range(4)])
+        if file_id in file_list:
+            continue
+        break
     file_list.append(file_id)
     try:
         with open(root / file_id, "wb") as f:
