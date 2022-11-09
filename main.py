@@ -36,8 +36,10 @@ def upload(c: UploadFile = File(...)):
     file_list.append(file_id)
     try:
         with open(root / file_id, "wb") as f:
-            while contents := c.file.read(1024 * 1024):
+            contents = c.file.read(1024 * 1024)
+            while contents:
                 f.write(contents)
+                contents = c.file.read(1024 * 1024)
     except Exception as e:
         return {"code": -1, "message": "上传出错了！", "error": repr(e)}
     finally:
