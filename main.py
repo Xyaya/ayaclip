@@ -83,7 +83,7 @@ async def download(file_id: str = Path(..., min_length=4, max_length=4)):
         return {"code": -1, "message": "此文件不存在"}
 
 
-@app.get("/zlib/{isbn}")
+@app.get("/isbn/{isbn}")
 async def get_book(isbn: int):
     data = await search_books(isbn)
     return data or {"code": -1, "message": "未查到此书"}
