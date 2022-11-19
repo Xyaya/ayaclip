@@ -13,7 +13,7 @@
 import httpx, json, re
 from lxml import etree
 from os import listdir
-from fastapi import FastAPI, File, UploadFile, Path
+from fastapi import FastAPI, File, Header, Path, UploadFile
 from fastapi.responses import FileResponse
 from random import choice
 from pathlib import Path as Path_
@@ -61,7 +61,7 @@ async def search_books(isbn):
 
 
 @app.post("/f")
-def upload(c: UploadFile = File(...)):
+def upload(c: UploadFile = File(...), Host: str | None = Header(None)):
     while (file_id := "".join([choice(id_str) for _ in range(4)])) in file_list:
         continue
     file_list.append(file_id)
@@ -76,7 +76,7 @@ def upload(c: UploadFile = File(...)):
     return {
         "code": 0,
         "message": f"Successfully uploaded: {file_id}",
-        "url": f"https://ayaclip.onrender.com/f/{file_id}",
+        "url": f"https://{Host}/f/{file_id}",
     }
 
 
