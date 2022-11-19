@@ -36,7 +36,7 @@ async def search_books(isbn):
         if md5_list:
             book_md5 = md5_list[0]
         else:
-            return None
+            return r.text
         book_url = f"https://annas-archive.org/md5/{book_md5}"
         r = await client.get(book_url)
         html = etree.HTML(r.text)  # type: ignore
