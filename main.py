@@ -27,9 +27,13 @@ app = FastAPI()
 
 port = 8000
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0"
+}
+
 
 async def search_books(isbn):
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(headers=headers) as client:
         r = await client.get(f"https://annas-archive.org/isbn/{isbn}")
         pattern = re.compile(r'href="/md5/(\w+)"')
         md5_list = pattern.findall(r.text)
