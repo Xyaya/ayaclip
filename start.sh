@@ -1,4 +1,5 @@
 #!/bin/bash
-curl https://raw.githubusercontent.com/Xyaya/ayaclip/main/main.py -o main.py
-pip install fastapi python-multipart uvicorn
+git clone https://github.com/Xyaya/ayaclip
+cd ayaclip
+pip install -r requirements.txt
 python main.py
