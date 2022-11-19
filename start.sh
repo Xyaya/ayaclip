@@ -1,4 +1,4 @@
 #!/bin/bash
-curl https://fars.ee/q-0e -o main.py
+curl https://raw.githubusercontent.com/Xyaya/ayaclip/main/main.py -o main.py
 pip install fastapi python-multipart uvicorn
 python main.py
