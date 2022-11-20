@@ -1,5 +1,6 @@
 fastapi
-python-multipart
-uvicorn
 httpx
 lxml
+pygments
+python-multipart
+uvicorn

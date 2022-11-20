@@ -19,8 +19,11 @@ from string import ascii_letters
 
 import httpx
 from fastapi import FastAPI, File, Header, Path, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from lxml import etree
+from pygments import highlight
+from pygments.formatters.html import HtmlFormatter
+from pygments.lexers import get_lexer_by_name
 
 root = Path_(__file__).parent / "files"
 if not root.is_dir():
@@ -35,7 +38,7 @@ headers = {
 }
 
 
-async def search_books(isbn):
+async def search_books(isbn: int) -> dict | None:
     async with httpx.AsyncClient(headers=headers) as client:
         r = await client.get(f"https://annas-archive.org/isbn/{isbn}")
         pattern = re.compile(r'href="/md5/(\w+)"')
@@ -63,14 +66,30 @@ async def search_books(isbn):
         }
 
 
+def render_html(path: Path_, h: str) -> str:
+    with open(path, "r") as f:
+        code = f.read()
+    lexer = get_lexer_by_name(h)
+    formatter = HtmlFormatter(linenos=True, style="default")
+    css = (
+        formatter.get_style_defs(".highlight")
+        + "pre {padding: 6px;font-size: 14px;line-height: 1.5;}"
+    )
+    return f'<style type="text/css">{css}</style>{highlight(code, lexer, formatter)}'
+
+
 @app.get("/isbn/{isbn}")
-async def get_book(isbn: int):
+async def get_book(isbn: int) -> dict:
     data = await search_books(isbn)
     return data or {"code": -1, "message": "未查到此书"}
 
 
 @app.post("/f")
-def upload(c: UploadFile = File(), gz: bool = False, Host: str = Header()):
+def upload(
+    c: UploadFile = File(),
+    Host: str = Header(),
+    gz: bool = False,
+) -> dict:
     while (file_id := "".join([choice(ascii_letters) for _ in range(4)])) in file_list:
         continue
     file_path = root / f"{file_id}.gz" if gz == True else root / file_id
@@ -95,9 +114,20 @@ def upload(c: UploadFile = File(), gz: bool = False, Host: str = Header()):
 
 
 @app.get("/f/{file_id}")
-def download(file_id: str = Path(min_length=4, max_length=4)):
+def download(file_id: str = Path(min_length=4, max_length=4)) -> FileResponse | dict:
     if file_id in file_list:
         return FileResponse(root / file_id)
+    else:
+        return {"code": -1, "message": "此文件不存在"}
+
+
+@app.get("/f/{file_id}/{h}")
+def highlight_html(
+    file_id: str = Path(min_length=4, max_length=4),
+    h: str = Path(default="text"),
+) -> HTMLResponse | dict:
+    if file_id in file_list:
+        return HTMLResponse(render_html(root / file_id, h))
     else:
         return {"code": -1, "message": "此文件不存在"}
 
