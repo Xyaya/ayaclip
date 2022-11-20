@@ -63,6 +63,12 @@ async def search_books(isbn):
         }
 
 
+@app.get("/isbn/{isbn}")
+async def get_book(isbn: int):
+    data = await search_books(isbn)
+    return data or {"code": -1, "message": "未查到此书"}
+
+
 @app.post("/f")
 def upload(c: UploadFile = File(), gz: bool = False, Host: str = Header()):
     while (file_id := "".join([choice(ascii_letters) for _ in range(4)])) in file_list:
@@ -78,15 +84,14 @@ def upload(c: UploadFile = File(), gz: bool = False, Host: str = Header()):
         return {"code": -1, "message": "上传出错了！", "error": repr(e)}
     finally:
         c.file.close()
-    info = {
+    if gz == True:
+        os.system(f"gzip -d {file_path}")
+    return {
         "code": 0,
         "message": f"Successfully uploaded: {file_id}",
         "url": f"https://{Host}/f/{file_id}",
+        "gzip": gz,
     }
-    if gz == True:
-        os.system(f"gzip -d {file_path}")
-        info["gzip"] = True
-    return info
 
 
 @app.get("/f/{file_id}")
@@ -95,12 +100,6 @@ def download(file_id: str = Path(min_length=4, max_length=4)):
         return FileResponse(root / file_id)
     else:
         return {"code": -1, "message": "此文件不存在"}
-
-
-@app.get("/isbn/{isbn}")
-async def get_book(isbn: int):
-    data = await search_books(isbn)
-    return data or {"code": -1, "message": "未查到此书"}
 
 
 if __name__ == "__main__":
