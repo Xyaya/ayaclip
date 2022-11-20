@@ -7,23 +7,26 @@
 @Version :   1.1
 @Contact :   ayatale@qq.com
 @Github  :   https://github.com/brx86/
-@Desc    :   None
+@Desc    :   pastbin and zlib api
 """
 
-import httpx, json, re
-from lxml import etree
-from os import listdir
+import json
+import os
+import re
+from pathlib import Path as Path_
+from random import choice
+from string import ascii_letters
+
+import httpx
 from fastapi import FastAPI, File, Header, Path, UploadFile
 from fastapi.responses import FileResponse
-from random import choice
-from pathlib import Path as Path_
+from lxml import etree
 
 root = Path_(__file__).parent / "files"
 if not root.is_dir():
     root.mkdir()
-id_str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-file_list = listdir(root)
-app = FastAPI()
+file_list = os.listdir(root)
+app = FastAPI(redoc_url=None)
 
 port = 8000
 
@@ -61,27 +64,33 @@ async def search_books(isbn):
 
 
 @app.post("/f")
-def upload(c: UploadFile = File(...), Host: str | None = Header(None)):
-    while (file_id := "".join([choice(id_str) for _ in range(4)])) in file_list:
+def upload(c: UploadFile = File(), gz: bool = False, Host: str = Header()):
+    while (file_id := "".join([choice(ascii_letters) for _ in range(4)])) in file_list:
         continue
-    file_list.append(file_id)
+    file_path = root / f"{file_id}.gz" if gz == True else root / file_id
     try:
-        with open(root / file_id, "wb") as f:
+        with open(file_path, "wb") as f:
             while contents := c.file.read(1024 * 1024):
                 f.write(contents)
+        file_list.append(file_id)
     except Exception as e:
+        file_path.unlink(missing_ok=True)
         return {"code": -1, "message": "上传出错了！", "error": repr(e)}
     finally:
         c.file.close()
-    return {
+    info = {
         "code": 0,
         "message": f"Successfully uploaded: {file_id}",
         "url": f"https://{Host}/f/{file_id}",
     }
+    if gz == True:
+        os.system(f"gzip -d {file_path}")
+        info["gzip"] = True
+    return info
 
 
 @app.get("/f/{file_id}")
-async def download(file_id: str = Path(..., min_length=4, max_length=4)):
+def download(file_id: str = Path(min_length=4, max_length=4)):
     if file_id in file_list:
         return FileResponse(root / file_id)
     else:
