@@ -24,6 +24,7 @@ from lxml import etree
 from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import get_lexer_by_name
+from pygments.util import ClassNotFound
 
 root = Path_(__file__).parent / "files"
 if not root.is_dir():
@@ -66,11 +67,11 @@ async def search_books(isbn: int) -> dict | None:
         }
 
 
-def render_html(path: Path_, h: str) -> str:
+def render_html(path: Path_, h: str, style: str) -> str:
     with open(path, "r") as f:
         code = f.read()
     lexer = get_lexer_by_name(h)
-    formatter = HtmlFormatter(linenos=True, style="default")
+    formatter = HtmlFormatter(linenos=True, style=style)
     css = (
         formatter.get_style_defs(".highlight")
         + "pre {padding: 6px;font-size: 14px;line-height: 1.5;}"
@@ -125,9 +126,13 @@ def download(file_id: str = Path(min_length=4, max_length=4)) -> FileResponse | 
 def highlight_html(
     file_id: str = Path(min_length=4, max_length=4),
     h: str = Path(default="text"),
+    style: str = "default",
 ) -> HTMLResponse | dict:
     if file_id in file_list:
-        return HTMLResponse(render_html(root / file_id, h))
+        try:
+            return HTMLResponse(render_html(root / file_id, h, style))
+        except ClassNotFound:
+            return {"code": -1, "message": "不支持这种格式"}
     else:
         return {"code": -1, "message": "此文件不存在"}
 
