@@ -32,11 +32,16 @@ cat /bin/neofetch|gzip -f -|curl -sF "c=@-" "https://clip.ay1.us/f?gz=1"
 
 ## 小技巧：
 
-### 〇 在文件地址后接文件格式或语言名称，可以高亮显示
+### 〇 在剪贴板地址后加 `/info`，可以查询文件信息（大小和创建时间）
+如：https://clip.ay1.us/f/main/info
+
+### 〇 在剪贴板地址后加 `/文件后缀`，可以高亮显示
 如：https://clip.ay1.us/f/main/py
 
-### 〇 把上传的请求写进shell配置文件，方便以后使用
+### 〇 在剪贴板地址后加 `.文件后缀`，可以下载对应后缀的文件
+如：https://clip.ay1.us/f/main.py
 
+### 〇 把上传的请求写进shell配置文件，方便以后使用
 如 `.zshrc` 里可以这样写：
 ```bash
 # 简单alias
