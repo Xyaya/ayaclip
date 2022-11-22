@@ -1,8 +1,8 @@
-# AyaClip
+# AyaClip 在线剪贴板
 
 ## 使用方法：
 
-### 〇 打开 https://clip.ay1.us/web 直接粘贴文本，点击提交上传
+### 〇 直接粘贴文本，点击上传
 ### 〇 请求api，可以在命令行使用curl上传
 
 示例：
@@ -64,3 +64,7 @@ clip3(){gzip -f -|curl -sF "c=@-" "https://clip.ay1.us/f?gz=1"|jq -r ".url"}
 fcitx5-diagnose | clip3
 clip3 < /etc/pacman.conf
 ```
+
+## 注意事项：
+
+本项目托管于 [render](https://render.com/) ，剪贴板只能临时存放，每次提交代码后都会重新构建，丢失所有数据
