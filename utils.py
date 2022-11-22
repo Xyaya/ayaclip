@@ -108,12 +108,7 @@ def btn_copy(text):
     toast(f"{text} 复制成功！", color="#4eb7cd")
 
 
-@config(theme="minty")
-def enterpoint_():
-    put_markdown(readme)
-
-
-@config(theme="minty")
+@config(title="AyaClip", theme="minty")
 def webui_():
     def btn_upload(text):
         file_id = get_file_id()
