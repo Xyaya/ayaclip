@@ -54,7 +54,13 @@ def enterpoint_():
 @pywebio_config(theme="minty")
 def webui_():
     def btn_copy(text):
-        js = f"var aux = document.createElement('input');aux.setAttribute('value', '{text}');document.body.appendChild(aux);aux.select();document.execCommand('copy');document.body.removeChild(aux)"
+        js = (
+            "var aux = document.createElement('input');"
+            f"aux.setAttribute('value', '{text}');"
+            "document.body.appendChild(aux);"
+            "aux.select();document.execCommand('copy');"
+            "document.body.removeChild(aux)"
+        )
         run_js(js)
         toast("复制成功！", color="#4eb7cd")
 
