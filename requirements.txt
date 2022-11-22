@@ -1,6 +1,9 @@
+aiofiles
 fastapi
 httpx
 lxml
 pygments
+pywebio
 python-multipart
 uvicorn
+websockets

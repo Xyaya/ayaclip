@@ -2,4 +2,5 @@
 .env
 __pycache__
 test*
-files
+files/*
+!files/main
