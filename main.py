@@ -21,15 +21,13 @@ from utils import *
 
 
 webui = asgi_app(webui_)
-enterpoint = asgi_app(enterpoint_)
 app = FastAPI(redoc_url=None)
 app.mount("/web", webui)
-app.mount("/readme", enterpoint)
 
 
 @app.get("/")
 async def redirect():
-    return RedirectResponse(url="/readme")
+    return RedirectResponse(url="/web")
 
 
 @app.get("/isbn/{isbn}")
