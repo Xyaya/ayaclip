@@ -116,24 +116,18 @@ async def search_books(isbn: int) -> dict | None:
         }
 
 
-def render_html(path: Path_, h: str, style: str) -> str:
+def render_html(path: Path_, lang: str, style: str) -> str:
     if path.stat().st_size > 1000000:
         return "文本超过1M，不再渲染"
     with open(path, "r") as f:
         code = f.read()
-    lexer = get_lexer_by_name(h)
+    lexer = get_lexer_by_name(lang)
     formatter = HtmlFormatter(linenos=True, style=style)
     css = (
         formatter.get_style_defs(".highlight")
         + "pre {padding: 6px;font-size: 14px;line-height: 1.5;}"
     )
     return f'<style type="text/css">{css}</style>{highlight(code, lexer, formatter)}'
-
-
-@app.get("/isbn/{isbn}")
-async def get_book(isbn: int) -> dict:
-    data = await search_books(isbn)
-    return data or {"code": -1, "message": "未查到此书"}
 
 
 webui = asgi_app(webui_)
@@ -145,6 +139,12 @@ app.mount("/readme", enterpoint)
 @app.get("/")
 async def redirect():
     return RedirectResponse(url="/readme")
+
+
+@app.get("/isbn/{isbn}")
+async def get_book(isbn: int) -> dict:
+    data = await search_books(isbn)
+    return data or {"code": -1, "message": "未查到此书"}
 
 
 @app.post("/f")
@@ -184,15 +184,15 @@ def download(file_id: str = Path(min_length=4, max_length=4)) -> FileResponse | 
         return {"code": -1, "message": "此文件不存在"}
 
 
-@app.get("/f/{file_id}/{h}")
+@app.get("/f/{file_id}/{lang}")
 def highlight_html(
     file_id: str = Path(min_length=4, max_length=4),
-    h: str = Path(default="text"),
+    lang: str = Path(default="text"),
     style: str = "default",
 ) -> HTMLResponse | dict:
     if file_id in file_list:
         try:
-            return HTMLResponse(render_html(root / file_id, h, style))
+            return HTMLResponse(render_html(root / file_id, lang, style))
         except ClassNotFound:
             return {"code": -1, "message": "不支持这种格式"}
     else:
