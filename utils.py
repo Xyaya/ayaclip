@@ -117,8 +117,8 @@ def webui_():
                 f.write(text)  # type: ignore
             file_list.append(file_id)
             stat = show_stats(root / file_id)
-            # url = f"https://clip.ay1.us/f/{file_id}"
-            url = f"http://127.0.0.1:7777/f/{file_id}"
+            url = f"https://clip.ay1.us/f/{file_id}"
+            # url = f"http://127.0.0.1:7777/f/{file_id}"
             put_table(
                 [
                     [
