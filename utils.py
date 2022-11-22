@@ -1,7 +1,6 @@
 import json
 import os
 import re
-from functools import partial
 from pathlib import Path as Path_
 from random import choice
 from string import ascii_letters
@@ -13,8 +12,16 @@ from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import get_lexer_by_name
 from pywebio import config
-from pywebio.input import textarea
-from pywebio.output import put_button, put_markdown, put_table, toast
+from pywebio.output import (
+    put_button,
+    put_buttons,
+    put_link,
+    put_markdown,
+    put_table,
+    put_tabs,
+    toast,
+)
+from pywebio.pin import pin, put_textarea, pin_update
 from pywebio.session import run_js
 
 root = Path_(__file__).parent / "files"
@@ -89,6 +96,18 @@ async def search_books(isbn: int) -> dict | None:
         }
 
 
+def btn_copy(text):
+    js = (
+        "var aux = document.createElement('input');"
+        f"aux.setAttribute('value', '{text}');"
+        "document.body.appendChild(aux);"
+        "aux.select();document.execCommand('copy');"
+        "document.body.removeChild(aux)"
+    )
+    run_js(js)
+    toast(f"{text} 复制成功！", color="#4eb7cd")
+
+
 @config(theme="minty")
 def enterpoint_():
     put_markdown(readme)
@@ -96,35 +115,49 @@ def enterpoint_():
 
 @config(theme="minty")
 def webui_():
-    def btn_copy(text):
-        js = (
-            "var aux = document.createElement('input');"
-            f"aux.setAttribute('value', '{text}');"
-            "document.body.appendChild(aux);"
-            "aux.select();document.execCommand('copy');"
-            "document.body.removeChild(aux)"
-        )
-        run_js(js)
-        toast("复制成功！", color="#4eb7cd")
-
-    text = textarea("AyaClip", rows=20, code={"lineWrapping": False})
-    file_id = get_file_id()
-    try:
-        with open(root / file_id, "w") as f:
-            f.write(text)  # type: ignore
-        file_list.append(file_id)
-        url = f"https://clip.ay1.us/f/{file_id}"
-        # url = f"http://127.0.0.1:7777/f/{file_id}"
-        put_markdown("## AyaClip")
-        put_table(
-            [
+    def btn_upload(text):
+        file_id = get_file_id()
+        try:
+            with open(root / file_id, "w") as f:
+                f.write(text)  # type: ignore
+            file_list.append(file_id)
+            stat = show_stats(root / file_id)
+            # url = f"https://clip.ay1.us/f/{file_id}"
+            url = f"http://127.0.0.1:7777/f/{file_id}"
+            put_table(
                 [
-                    put_markdown(url),
-                    put_button("复制", onclick=partial(btn_copy, text=url)),
+                    [
+                        stat["mtime"][1],
+                        stat["size"][1],
+                    ],
+                    [
+                        put_link(url, url=url),
+                        put_button("复制", onclick=lambda: btn_copy(url)),
+                    ],
+                ]
+            )
+        except Exception as e:
+            (root / file_id).unlink(missing_ok=True)
+            toast(f"{e!r}", color="error")
+
+    put_tabs(
+        [
+            {
+                "title": "AyaClip",
+                "content": [
+                    put_textarea("AyaClip", rows=20, code={"lineWrapping": False}),
+                    put_buttons(
+                        [
+                            {"label": "上传", "value": "submit", "color": "primary"},
+                            {"label": "清除", "value": "reset", "color": "warning"},
+                        ],
+                        onclick=[
+                            lambda: btn_upload(pin.AyaClip),
+                            lambda: pin_update("AyaClip", value=""),
+                        ],
+                    ),
                 ],
-            ]
-        )
-        put_markdown(f"```\n{text}\n```")
-    except Exception as e:
-        (root / file_id).unlink(missing_ok=True)
-        toast(f"{e!r}", color="error")
+            },
+            {"title": "使用说明", "content": put_markdown(readme)},
+        ]
+    )
