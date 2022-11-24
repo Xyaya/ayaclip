@@ -81,7 +81,11 @@ async def search_books(isbn: int) -> dict | None:
         book_url = f"https://annas-archive.org/md5/{book_md5}"
         r = await client.get(book_url)
         html = etree.HTML(r.text)  # type: ignore
-        book_json = json.loads(html.xpath("/html/body/div[2]/div")[-1].text)
+        book_json = json.loads(
+            html.xpath(
+                "//div[@class='text-xs p-4 font-mono whitespace-pre-wrap break-words bg-[#0000000d]']/text()"
+            )[0]
+        )
         book_info = book_json.get("file_unified_data", {})
         return {
             "cover_url": book_info.get("cover_url_best", ""),
