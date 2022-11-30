@@ -12,7 +12,7 @@
 import os
 
 from fastapi import FastAPI, File, Header, Path, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import Response, FileResponse, HTMLResponse
 from pygments.util import ClassNotFound
 from pywebio.platform.fastapi import asgi_app
 from starlette.responses import RedirectResponse
@@ -66,10 +66,15 @@ def upload(
 
 
 @app.get("/f/{file_name}")
-def download(file_name: str = Path(min_length=4, max_length=20)) -> FileResponse | dict:
+def download(
+    file_name: str = Path(min_length=4, max_length=20),
+    html: bool = False,
+) -> Response | dict:
     flist = file_name.split(".", 1)
     if (file_id := flist[0]) in file_list:
         f = file_name if len(flist) == 2 else None
+        if html == True:
+            return HTMLResponse((root / file_id).read_text())
         return FileResponse(path=(root / file_id), filename=f)
     else:
         return {"code": -1, "message": "此文件不存在"}
