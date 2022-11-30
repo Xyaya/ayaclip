@@ -82,7 +82,7 @@ def download(
         return {"code": -1, "message": "此文件不存在"}
 
 
-@app.get("/s/{file_name}")
+@app.get("/s/{file_id}")
 def short_url(file_id: str = Path(min_length=4, max_length=20)) -> Response | dict:
     if file_id in file_list:
         return RedirectResponse((root / file_id).read_text().strip())
