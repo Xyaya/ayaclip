@@ -101,7 +101,7 @@ async def search_books(isbn: int) -> dict | None:
         }
 
 
-@config(title="AyaClip", theme="yeti")
+@config(title="AyaClip", theme="dark")
 def webui_():
     def btn_copy(text):
         js = (
