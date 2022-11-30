@@ -12,7 +12,7 @@
 import os
 
 from fastapi import FastAPI, File, Header, Path, UploadFile
-from fastapi.responses import Response, FileResponse, HTMLResponse
+from fastapi.responses import Response, FileResponse, HTMLResponse, RedirectResponse
 from pygments.util import ClassNotFound
 from pywebio.platform.fastapi import asgi_app
 from starlette.responses import RedirectResponse
@@ -80,6 +80,14 @@ def download(
         return FileResponse(path=(root / file_id), filename=f)
     else:
         return {"code": -1, "message": "此文件不存在"}
+
+
+@app.get("/s/{file_name}")
+def short_url(file_id: str = Path(min_length=4, max_length=20)) -> Response | dict:
+    if file_id in file_list:
+        return RedirectResponse((root / file_id).read_text().strip())
+    else:
+        return {"code": -1, "message": "此短网址不存在"}
 
 
 @app.get("/f/{file_id}/{lang}")
