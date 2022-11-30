@@ -12,6 +12,7 @@ from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import get_lexer_by_name
 from pywebio import config
+from pywebio.input import file_upload
 from pywebio.output import (
     put_button,
     put_buttons,
@@ -21,7 +22,7 @@ from pywebio.output import (
     put_tabs,
     toast,
 )
-from pywebio.pin import pin, put_textarea, pin_update
+from pywebio.pin import pin, pin_update, put_textarea
 from pywebio.session import run_js
 
 root = Path_(__file__).parent / "files"
@@ -100,25 +101,27 @@ async def search_books(isbn: int) -> dict | None:
         }
 
 
-def btn_copy(text):
-    js = (
-        "var aux = document.createElement('input');"
-        f"aux.setAttribute('value', '{text}');"
-        "document.body.appendChild(aux);"
-        "aux.select();document.execCommand('copy');"
-        "document.body.removeChild(aux)"
-    )
-    run_js(js)
-    toast(f"{text} 复制成功！", color="#4eb7cd")
-
-
-@config(title="AyaClip", theme="minty")
+@config(title="AyaClip", theme="yeti")
 def webui_():
-    def btn_upload(text):
+    def btn_copy(text):
+        js = (
+            "var aux = document.createElement('input');"
+            f"aux.setAttribute('value', '{text}');"
+            "document.body.appendChild(aux);"
+            "aux.select();document.execCommand('copy');"
+            "document.body.removeChild(aux)"
+        )
+        run_js(js)
+        toast(f"{text} 复制成功！", color="info")
+
+    def btn_upload(content, is_bytes):
+        if not content:
+            toast("内容不能为空！", color="error")
+            return
         file_id = get_file_id()
         try:
-            with open(root / file_id, "w") as f:
-                f.write(text)  # type: ignore
+            with open(root / file_id, ("w", "wb")[is_bytes]) as f:
+                f.write(content)
             file_list.append(file_id)
             stat = show_stats(root / file_id)
             url = f"https://clip.ay1.us/f/{file_id}"
@@ -139,6 +142,10 @@ def webui_():
             (root / file_id).unlink(missing_ok=True)
             toast(f"{e!r}", color="error")
 
+    def btn_upload_file():
+        f = file_upload("请选择你要上传的文件") or {}
+        btn_upload(f.get("content"), True)  # type: ignore
+
     put_tabs(
         [
             {
@@ -147,11 +154,13 @@ def webui_():
                     put_textarea("AyaClip", rows=20, code={"lineWrapping": False}),
                     put_buttons(
                         [
-                            {"label": "上传", "value": "submit", "color": "primary"},
-                            {"label": "清除", "value": "reset", "color": "warning"},
+                            {"label": "上传文本", "value": "submit", "color": "success"},
+                            {"label": "上传文件", "value": "picbed", "color": "primary"},
+                            {"label": "清除文本", "value": "reset", "color": "secondary"},
                         ],
                         onclick=[
-                            lambda: btn_upload(pin.AyaClip),
+                            lambda: btn_upload(pin.AyaClip, False),
+                            lambda: btn_upload_file(),
                             lambda: pin_update("AyaClip", value=""),
                         ],
                     ),
