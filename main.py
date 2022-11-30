@@ -68,13 +68,15 @@ def upload(
 @app.get("/f/{file_name}")
 def download(
     file_name: str = Path(min_length=4, max_length=20),
-    html: bool = False,
+    r: str = "",
 ) -> Response | dict:
     flist = file_name.split(".", 1)
     if (file_id := flist[0]) in file_list:
         f = file_name if len(flist) == 2 else None
-        if html == True:
+        if r == "html":
             return HTMLResponse((root / file_id).read_text())
+        elif r == "mp4":
+            return FileResponse(path=(root / file_id), media_type="video/mp4")
         return FileResponse(path=(root / file_id), filename=f)
     else:
         return {"code": -1, "message": "此文件不存在"}
