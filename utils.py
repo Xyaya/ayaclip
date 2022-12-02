@@ -70,6 +70,15 @@ def render_html(path: Path_, lang: str, style: str) -> str:
     return f'<style type="text/css">{css}</style>{highlight(code, lexer, formatter)}'
 
 
+@config(title="AyaClip", theme="minty")
+def render_markdown(file_id: str):
+    path = root / file_id
+    if path.stat().st_size > 500000:
+        put_markdown("文本超过500k，不再渲染")
+    md = path.read_text()
+    put_markdown(md)
+
+
 async def search_books(isbn: int) -> dict | None:
     async with httpx.AsyncClient(headers={"User-Agent": "Mozilla/5.0"}) as client:
         r = await client.get(f"https://annas-archive.org/isbn/{isbn}")
