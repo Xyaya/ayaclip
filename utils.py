@@ -29,7 +29,7 @@ root = Path_(__file__).parent / "files"
 if not root.is_dir():
     root.mkdir()
 file_list = os.listdir(root)
-
+md_list = []
 
 with open(Path_(__file__).parent / "README.md", "r") as f:
     readme = f.read()

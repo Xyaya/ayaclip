@@ -19,9 +19,8 @@ from starlette.responses import RedirectResponse
 
 from utils import *
 
-webui = asgi_app(webui_)
 app = FastAPI(redoc_url=None)
-app.mount("/web", webui)
+app.mount("/web", asgi_app(webui_))
 
 
 @app.get("/")
@@ -92,7 +91,9 @@ def short_url(file_id: str = Path(min_length=4, max_length=20)) -> Response | di
 @app.get("/r/{file_id}")
 def show_markdown(file_id: str = Path(min_length=4, max_length=4)):
     if file_id in file_list:
-        app.mount(f"/md/{file_id}", asgi_app(lambda: render_markdown(file_id)))
+        if file_id not in md_list:
+            md_list.append(file_id)
+            app.mount(f"/md/{file_id}", asgi_app(lambda: render_markdown(file_id)))
         return RedirectResponse(f"/md/{file_id}")
     else:
         return {"code": -1, "message": "此文件不存在"}
